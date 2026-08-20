@@ -105,5 +105,8 @@ function translateAuthError(error) {
   if (message.includes("Unable to validate email address")) {
     return "メールアドレスの形式が正しくありません。";
   }
+  if (message.toLowerCase().includes("rate limit")) {
+    return "確認メールの送信回数がSupabase側の上限に達しています。しばらく（1時間程度）待ってから再度お試しください。";
+  }
   return "エラーが発生しました。しばらくしてから再度お試しください。";
 }
