@@ -4,65 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>宝石BoxHunter</title>
-<link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<header>
-  <h1 class="title">宝石BoxHunter</h1>
-</header>
-
-<!-- ログイン／新規登録 -->
-<section id="authSection" class="auth-panel">
-  <div class="auth-tabs">
-    <button id="tabLogin" class="active" type="button">ログイン</button>
-    <button id="tabRegister" type="button">新規登録</button>
-  </div>
-  <form id="authForm">
-    <label for="username">ユーザー名</label>
-    <input id="username" name="username" type="text" autocomplete="username" required>
-    <label for="password">パスワード</label>
-    <input id="password" name="password" type="password" autocomplete="current-password" required>
-    <div id="authError" class="auth-error"></div>
-    <button type="submit" class="auth-submit">ログイン</button>
-  </form>
-</section>
-
-<!-- ゲーム本体 -->
-<section id="gameSection" class="hidden">
-  <div class="user-bar">
-    <span id="welcomeMsg"></span>
-    <a href="ranking.html" class="link-button">TOP30ランキングを見る</a>
-    <button id="logoutBtn" class="secondary" type="button">ログアウト</button>
-  </div>
-
-  <p class="subtitle">宝箱を開けよう</p>
-
-  <div class="board-wrap">
-    <div id="board" class="board"></div>
-  </div>
-
-  <div class="total-score-panel">
-    <div class="label">合計点数</div>
-    <div class="value" id="totalScore">0</div>
-  </div>
-
-  <div class="result-panel">
-    <h2 class="section-heading">開封結果</h2>
-    <div class="result-scroll">
-      <table class="result-table">
-        <thead>
-          <tr><th>日時</th><th>結果</th><th>点数</th></tr>
-        </thead>
-        <tbody id="resultBody"></tbody>
-      </table>
-    </div>
-  </div>
-</section>
-
-<footer>&copy; 2026 KT Corporation</footer>
-
-<script src="app.js"></script>
-<script src="game.js"></script>
+<div id="root"></div>
+<script type="module" src="/src/main.jsx"></script>
 </body>
 </html>

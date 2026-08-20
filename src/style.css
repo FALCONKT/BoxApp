@@ -145,6 +145,12 @@ button.secondary, .link-button.secondary {
   margin-top: 10px;
 }
 
+.auth-notice {
+  color: #1a5c3a;
+  font-size: 13px;
+  margin-top: 10px;
+}
+
 .auth-submit {
   margin-top: 18px;
   width: 100%;
