@@ -82,6 +82,7 @@ DB連携に着手する際は `app.js` の `getUsers`/`saveUsers`/`getTotals`/`s
 - 宝箱盤：石畳風の背景（CSSグラデーションで表現、画像アセット不使用）＋縁取り枠
 - フッター：`© 2026 KT Corporation`
 - レスポンシブ：`style.css` 末尾のメディアクエリで、タブレット（〜1024px）・SP（〜600px）では `body`余白／`.board-wrap`余白・枠線／`.board`のgapを詰め、宝箱1個の見た目サイズをデスクトップ相対で約1.2〜1.4倍に拡大（6×6配置は変更しない）。数値をさらに詰めれば拡大率は上げられるが、詰めすぎると石畳の縁取りが失われるため、枠が視認できる範囲で調整済み。
+- デスクトップ限定レイアウト（1025px以上）：`#gameSection` を `grid-template-columns: 7fr 3fr` にし、左＝宝箱盤、右＝「開封結果」パネル（`.result-panel` / `index.html` 側で見出し＋テーブルを `.result-scroll` でラップ）を配置。結果側は `max-height: calc(100vh - 220px)` ＋ `overflow-y: auto` で独自スクロールし、`thead` を `position: sticky` で固定。タブレット・SPはこの節の影響を受けず、従来通り縦並び。
 
 ## 今後の想定タスク（未着手）
 

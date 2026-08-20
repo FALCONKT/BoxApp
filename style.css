@@ -310,6 +310,65 @@ footer {
   display: none !important;
 }
 
+/* ---------- デスクトップ（1025px以上） ----------
+   開封結果を画面右側に、盤面:結果 = 7:3程度の比率で配置し、
+   結果側は縦スクロール表示にする。タブレット・SP表示には影響しない。 */
+
+@media (min-width: 1025px) {
+  #gameSection {
+    max-width: 1180px;
+  }
+
+  #gameSection.hidden {
+    display: none;
+  }
+
+  #gameSection:not(.hidden) {
+    display: grid;
+    grid-template-columns: 7fr 3fr;
+    column-gap: 28px;
+    grid-template-areas:
+      "userbar  userbar"
+      "subtitle result"
+      "board    result"
+      "total    result";
+  }
+
+  .user-bar { grid-area: userbar; }
+  .subtitle { grid-area: subtitle; }
+  .board-wrap { grid-area: board; }
+  .total-score-panel { grid-area: total; }
+
+  .result-panel {
+    grid-area: result;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .result-panel .section-heading {
+    margin-top: 0;
+  }
+
+  .result-panel .result-scroll {
+    flex: 1;
+    min-height: 0;
+    max-height: calc(100vh - 220px);
+    overflow-y: auto;
+    border: 2px solid var(--frame-color);
+  }
+
+  .result-panel table.result-table {
+    border: none;
+  }
+
+  .result-panel table.result-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+}
+
 /* ---------- レスポンシブ（タブレット・SP） ----------
    宝箱の枠・余白を詰めて、その分だけ宝箱本体を大きく見せる。 */
 
