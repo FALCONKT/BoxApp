@@ -83,7 +83,7 @@ export default function AuthPanel() {
         {notice && <div className="auth-notice">{notice}</div>}
         <div className="auth-error">{error}</div>
         <button type="submit" className="auth-submit" disabled={submitting}>
-          {mode === "login" ? "ログイン" : "登録する"}
+          {mode === "login" ? "ログインする" : "登録する"}
         </button>
       </form>
     </section>

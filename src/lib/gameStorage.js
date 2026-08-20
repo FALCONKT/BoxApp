@@ -33,6 +33,14 @@ export function addRecord(email, resultName, points) {
   return totals[email];
 }
 
+// 開封履歴と合計点数をまとめて削除する
+export function clearHistory(email) {
+  localStorage.removeItem(STORAGE_HISTORY_PREFIX + email);
+  const totals = getTotals();
+  delete totals[email];
+  saveTotals(totals);
+}
+
 export function formatDateTime(date) {
   const pad = (n) => String(n).padStart(2, "0");
   return (

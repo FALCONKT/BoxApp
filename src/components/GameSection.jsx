@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { BOX_COUNT, BOX_CLOSED_IMG, OPEN_DISPLAY_MS, PRIZES, TOTAL_WEIGHT } from "../lib/prizes";
-import { addRecord, getHistory, getTotals, formatDateTime } from "../lib/gameStorage";
+import { addRecord, clearHistory, getHistory, getTotals, formatDateTime } from "../lib/gameStorage";
 
 // 宝箱ゲーム本体（宝箱盤・合計点数・開封結果テーブル）
 export default function GameSection({ user }) {
@@ -74,6 +74,14 @@ export default function GameSection({ user }) {
     await supabase.auth.signOut();
   }
 
+  function handleClearHistory() {
+    if (history.length === 0) return;
+    if (!window.confirm("開封結果と合計点数をすべて削除します。よろしいですか？")) return;
+    clearHistory(email);
+    setHistory([]);
+    setTotal(0);
+  }
+
   return (
     <section id="gameSection">
       <div className="user-bar">
@@ -119,7 +127,17 @@ export default function GameSection({ user }) {
       </div>
 
       <div className="result-panel">
-        <h2 className="section-heading">開封結果</h2>
+        <div className="result-header">
+          <h2 className="section-heading">開封結果</h2>
+          <button
+            type="button"
+            className="secondary"
+            disabled={history.length === 0}
+            onClick={handleClearHistory}
+          >
+            履歴を削除
+          </button>
+        </div>
         <div className="result-scroll">
           <table className="result-table">
             <thead>

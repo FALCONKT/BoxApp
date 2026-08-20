@@ -32,9 +32,10 @@ header {
 }
 
 h1.title {
-  font-size: 36px;
+  font-size: 48px;
   font-weight: bold;
-  margin: 0 0 4px;
+  margin: 20px 0 36px;
+  /* margin: 0 0 4px; */
   letter-spacing: .05em;
 }
 
@@ -47,6 +48,18 @@ h2.section-heading {
   font-size: 28px;
   font-weight: bold;
   margin: 24px 0 12px;
+}
+
+.result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.result-header .section-heading {
+  margin-bottom: 0;
 }
 
 .top-nav {
@@ -68,7 +81,7 @@ h2.section-heading {
 button, .link-button {
   font-family: inherit;
   font-size: 15px;
-  padding: 8px 18px;
+  padding: 12px 12px;
   border-radius: 6px;
   border: 1px solid var(--frame-color);
   background: var(--accent-color);
@@ -103,21 +116,21 @@ button.secondary, .link-button.secondary {
   background: var(--panel-color);
   border: 2px solid var(--frame-color);
   border-radius: 10px;
-  padding: 28px 32px;
+  padding: 48px 36px;
   max-width: 380px;
   width: 100%;
   box-shadow: 0 4px 12px rgba(0, 0, 0, .2);
 }
 
 .auth-panel label {
-  display: block;
-  margin: 12px 0 4px;
+  display: inline-block;
+  margin: 24px 0 8px;
   font-size: 14px;
 }
 
 .auth-panel input {
   width: 100%;
-  padding: 8px 10px;
+  padding: 12px 12px;
   font-size: 15px;
   border: 1px solid #a08a63;
   border-radius: 4px;
