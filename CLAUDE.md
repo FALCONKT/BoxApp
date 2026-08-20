@@ -31,8 +31,10 @@ npm run preview # ビルド結果のプレビュー
 | `src/pages/HomePage.jsx` | `/` ルート。ログイン状態でAuthPanel⇄GameSectionを出し分け |
 | `src/pages/RankingPage.jsx` | `/ranking` ルート。全ユーザー中TOP30の合計点数ランキング（RequireAuthでガード） |
 | `src/lib/prizes.js` | 宝箱の抽選テーブル（唯一の情報源） |
-| `src/lib/gameStorage.js` | 合計点数・開封履歴のlocalStorage永続化ヘルパー |
+| `src/lib/gameStorage.js` | 開封結果一覧（ログ表示）のlocalStorage永続化ヘルパー |
+| `src/lib/statsApi.js` | 累計スコア・宝石取得数（Supabase `user_stats`）へのCRUD操作 |
 | `src/style.css` | 全ページ共通スタイル（デザインは移行前と同一） |
+| `supabase/schema.sql` | `user_stats` テーブル定義・RLSポリシー（Supabase SQL Editorで実行） |
 | `public/img/` | 画像アセット（後述） |
 | `public/*.mp3` | 音声アセット（後述） |
 
@@ -86,14 +88,37 @@ Viteの `public/` 配下は静的パスとしてそのまま配信されるた�
 - `Saf.mp3` … サファイア
 - `To.mp3` … トパーズ
 
-## データ永続化（現状の割り切り）
+## データ永続化
 
-会員登録・ログイン自体は Supabase Auth に移行済みだが、合計点数・開封履歴はDB未接続のため引き続き `localStorage` で代替している（将来的にSupabaseのテーブルへ差し替える前提の暫定実装）。
+会員登録・ログインは Supabase Auth、**累計スコア・宝石取得数は Supabase の `user_stats` テーブル**で管理する。開封結果一覧（日時付きのログ表示）は引き続き `localStorage` で管理する（テーブル定義には含まれないため）。
 
-- `bh_totals` … `{ email: 合計点数 }`（ランキング画面はこれをソートしてTOP30表示）
-- `bh_history_<email>` … そのユーザーの開封履歴配列（新しい記録が先頭）
+### user_stats テーブル（Supabase）
 
-キーは移行前の「ユーザー名」から Supabase の `user.email` に変更されている。DB連携に着手する際は `src/lib/gameStorage.js` の `getTotals`/`getHistory`/`addRecord` をAPI呼び出しに置き換える想定。呼び出し側（`GameSection`/`RankingPage`）のインターフェースは変えずに済むよう設計してある。
+テーブル定義・RLSポリシーは [`supabase/schema.sql`](supabase/schema.sql) にまとめてある。Supabaseダッシュボードの SQL Editor で一度実行する必要がある（コード側からDDLは実行できない）。
+
+| カラム | 内容 |
+|---|---|
+| `user_id` | 主キー。`auth.users.id` への外部キー |
+| `username` | 表示用メールアドレス（`auth.users` はクライアントから直接SELECTできないため冗長保持） |
+| `total_score` | 合計点数 |
+| `diamond_count` / `ruby_count` / `sapphire_count` / `topaz_count` | 宝石ごとの累計取得数 |
+| `updated_at` | 最終更新日時 |
+
+RLSを有効化し、以下のポリシーを設定済み：
+- **SELECT**：ログイン済みユーザーは全員分を閲覧可能（ランキング表示のため）
+- **INSERT/UPDATE/DELETE**：`auth.uid() = user_id` の行のみ、本人操作に限定
+
+CRUD操作は `src/lib/statsApi.js` に集約：
+- `fetchUserStats(userId)` … 自分の累計を取得（SELECT）
+- `fetchRanking()` … 全ユーザーの合計点数TOP30を取得（SELECT、`RankingPage`が使用）
+- `recordBoxOpening(user, prize)` … 宝箱を開けた結果を反映。レコード未作成なら新規作成（INSERT）、既存なら加算更新（UPDATE）。`GameSection`の`openBox`から呼び出す
+- `clearUserStats(userId)` … 累計レコードを削除（DELETE）。「履歴を削除」ボタンから呼び出す
+
+いずれもエラー時は `GameSection`/`RankingPage` 側で `.error-text` によりエラーメッセージを表示し、画面はクラッシュさせない。
+
+### 開封結果一覧（localStorage、引き続き暫定）
+
+- `bh_history_<email>` … そのユーザーの開封履歴配列（新しい記録が先頭、日時付き）。`src/lib/gameStorage.js` の `getHistory`/`addHistoryRecord`/`clearLocalHistory` で操作。
 
 ## デザイン方針
 
@@ -108,7 +133,7 @@ Viteの `public/` 配下は静的パスとしてそのまま配信されるた�
 
 ## 今後の想定タスク（未着手）
 
-- 合計点数・開封履歴の localStorage → 実データベース（Supabaseテーブル等）への移行
+- 開封結果一覧（日時付きログ）の localStorage → Supabaseテーブルへの移行
 - Supabaseプロジェクト側の認証設定（メール確認要否、パスワードポリシー等）の運用方針整理
 
 ## Supabase設定

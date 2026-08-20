@@ -1,14 +1,31 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { getTotals } from "../lib/gameStorage";
+import { fetchRanking } from "../lib/statsApi";
 
 // TOP30ランキングページ："/ranking"（RequireAuthで未ログイン時はリダイレクトされる）
 export default function RankingPage() {
   const { user } = useAuth();
-  const totals = getTotals();
-  const ranking = Object.entries(totals)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 30);
+  const [ranking, setRanking] = useState([]);
+  const [error, setError] = useState("");
+
+  // Supabaseのuser_statsから全ユーザーの累計スコア上位30件を取得する（SELECT）
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchRanking()
+      .then((rows) => {
+        if (!cancelled) setRanking(rows);
+      })
+      .catch((err) => {
+        console.error(err);
+        if (!cancelled) setError("ランキングの取得に失敗しました。");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <>
@@ -24,6 +41,8 @@ export default function RankingPage() {
         </Link>
       </div>
 
+      {error && <div className="error-text">{error}</div>}
+
       <table className="rank-table">
         <thead>
           <tr>
@@ -38,11 +57,11 @@ export default function RankingPage() {
               <td colSpan="3">まだ記録がありません</td>
             </tr>
           ) : (
-            ranking.map(([rankEmail, score], i) => (
-              <tr key={rankEmail} className={rankEmail === user?.email ? "me" : ""}>
+            ranking.map((row, i) => (
+              <tr key={row.username} className={row.username === user?.email ? "me" : ""}>
                 <td>{i + 1}</td>
-                <td>{rankEmail}</td>
-                <td>{score}</td>
+                <td>{row.username}</td>
+                <td>{row.total_score}</td>
               </tr>
             ))
           )}

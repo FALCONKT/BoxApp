@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { BOX_COUNT, BOX_CLOSED_IMG, OPEN_DISPLAY_MS, PRIZES, TOTAL_WEIGHT } from "../lib/prizes";
-import { addRecord, clearHistory, getHistory, getTotals, formatDateTime } from "../lib/gameStorage";
+import { addHistoryRecord, clearLocalHistory, getHistory, formatDateTime } from "../lib/gameStorage";
+import { fetchUserStats, recordBoxOpening, clearUserStats } from "../lib/statsApi";
 
 // 宝箱ゲーム本体（宝箱盤・合計点数・開封結果テーブル）
 export default function GameSection({ user }) {
@@ -13,12 +14,22 @@ export default function GameSection({ user }) {
   const [boardKey, setBoardKey] = useState(0);
   const [total, setTotal] = useState(0);
   const [history, setHistory] = useState([]);
+  const [saveError, setSaveError] = useState("");
   const soundsRef = useRef({});
 
-  // 初回表示時に既存の合計点数・履歴を読み込み、画像/音声をプリロードする
+  // 初回表示時に既存の合計点数（Supabase）・履歴（ローカル）を読み込み、画像/音声をプリロードする
   useEffect(() => {
-    const totals = getTotals();
-    setTotal(totals[email] || 0);
+    let cancelled = false;
+
+    fetchUserStats(user.id)
+      .then((stats) => {
+        if (!cancelled) setTotal(stats?.total_score || 0);
+      })
+      .catch((err) => {
+        console.error(err);
+        if (!cancelled) setSaveError("合計点数の取得に失敗しました。");
+      });
+
     setHistory(getHistory(email));
 
     [BOX_CLOSED_IMG, ...PRIZES.map((p) => p.img)].forEach((src) => {
@@ -29,7 +40,11 @@ export default function GameSection({ user }) {
     PRIZES.forEach((p) => {
       soundsRef.current[p.key] = new Audio(p.soundSrc);
     });
-  }, [email]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user.id, email]);
 
   function drawPrize() {
     let r = Math.random() * TOTAL_WEIGHT;
@@ -54,12 +69,21 @@ export default function GameSection({ user }) {
       sound.play().catch(() => {});
     }
 
-    const newTotal = addRecord(email, prize.name, prize.points);
-    setTotal(newTotal);
+    // 開封結果一覧はローカルに即時追加（表示用ログ）
+    addHistoryRecord(email, prize.name, prize.points);
     setHistory((prev) => [
       { datetime: formatDateTime(new Date()), result: prize.name, points: prize.points },
       ...prev,
     ]);
+
+    // 累計スコア・宝石取得数はSupabaseへ反映（INSERT/UPDATE）
+    setTotal((prev) => prev + prize.points);
+    recordBoxOpening(user, prize)
+      .then(() => setSaveError(""))
+      .catch((err) => {
+        console.error(err);
+        setSaveError("スコアの保存に失敗しました。通信環境をご確認のうえ再度お試しください。");
+      });
 
     // 一定時間表示した後、盤面36個すべてを消去して再構築する
     setTimeout(() => {
@@ -77,9 +101,18 @@ export default function GameSection({ user }) {
   function handleClearHistory() {
     if (history.length === 0) return;
     if (!window.confirm("開封結果と合計点数をすべて削除します。よろしいですか？")) return;
-    clearHistory(email);
+
+    clearLocalHistory(email);
     setHistory([]);
     setTotal(0);
+
+    // 累計スコア・宝石取得数のレコードをSupabaseから削除（DELETE）
+    clearUserStats(user.id)
+      .then(() => setSaveError(""))
+      .catch((err) => {
+        console.error(err);
+        setSaveError("Supabase側のデータ削除に失敗しました。");
+      });
   }
 
   return (
@@ -125,6 +158,8 @@ export default function GameSection({ user }) {
         <div className="label">合計点数</div>
         <div className="value">{total}</div>
       </div>
+
+      {saveError && <div className="error-text">{saveError}</div>}
 
       <div className="result-panel">
         <div className="result-header">

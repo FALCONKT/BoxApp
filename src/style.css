@@ -164,6 +164,12 @@ button.secondary, .link-button.secondary {
   margin-top: 10px;
 }
 
+.error-text {
+  color: #b3261e;
+  font-size: 13px;
+  margin: 4px 0 12px;
+}
+
 .auth-submit {
   margin-top: 18px;
   width: 100%;
